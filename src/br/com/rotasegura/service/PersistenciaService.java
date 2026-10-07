@@ -17,11 +17,6 @@ public class PersistenciaService {
 
     private static final String ARQUIVO = "dados_rotasegura.txt";
 
-
-    // =========================================================
-    // SALVAR
-    // =========================================================
-
     public void salvar(Locadora locadora) {
 
         try {
@@ -30,7 +25,6 @@ public class PersistenciaService {
 
             dados.append("ROTASEGURA_V1\n");
 
-            // CLIENTES
             dados.append("[CLIENTES]\n");
 
             for (Cliente cliente : locadora.listarClientes()) {
@@ -45,14 +39,11 @@ public class PersistenciaService {
                         .append("\n");
             }
 
-            // VEÍCULOS
             dados.append("[VEICULOS]\n");
 
             for (Veiculo veiculo : locadora.listarVeiculos()) {
 
-                dados.append(
-                                veiculo.getClass().getSimpleName()
-                        )
+                dados.append(veiculo.getClass().getSimpleName())
                         .append("|")
                         .append(veiculo.getPlaca())
                         .append("|")
@@ -64,7 +55,6 @@ public class PersistenciaService {
                         .append("\n");
             }
 
-            // CONTRATOS
             dados.append("[CONTRATOS]\n");
 
             for (Contrato contrato : locadora.listarContratos()) {
@@ -99,19 +89,16 @@ public class PersistenciaService {
         }
     }
 
-
-    // =========================================================
-    // CARREGAR
-    // =========================================================
-
     public void carregar(Locadora locadora) {
 
         Path caminho = Path.of(ARQUIVO);
 
         if (!Files.exists(caminho)) {
+
             System.out.println(
                     "Nenhum arquivo de dados encontrado."
             );
+
             return;
         }
 
@@ -122,7 +109,6 @@ public class PersistenciaService {
 
             String secao = "";
 
-            // Primeiro carregamos clientes e veículos.
             for (String linha : linhas) {
 
                 linha = linha.trim();
@@ -168,25 +154,10 @@ public class PersistenciaService {
                 }
             }
 
-            // Depois carregamos os contratos.
-            for (String linha : linhas) {
-
-                linha = linha.trim();
-
-                if (linha.isEmpty()
-                        || linha.equals("ROTASEGURA_V1")
-                        || linha.equals("[CLIENTES]")
-                        || linha.equals("[VEICULOS]")
-                        || linha.equals("[CONTRATOS]")) {
-
-                    continue;
-                }
-
-                // Descobre se estamos na seção de contratos
-                // verificando o marcador antes da linha.
-            }
-
-            carregarContratos(locadora, linhas);
+            carregarContratos(
+                    locadora,
+                    linhas
+            );
 
             System.out.println(
                     "Dados carregados com sucesso."
@@ -207,11 +178,6 @@ public class PersistenciaService {
             );
         }
     }
-
-
-    // =========================================================
-    // CARREGAR CLIENTE
-    // =========================================================
 
     private void carregarCliente(
             Locadora locadora,
@@ -234,11 +200,6 @@ public class PersistenciaService {
             locadora.cadastrarCliente(cliente);
         }
     }
-
-
-    // =========================================================
-    // CARREGAR VEÍCULO
-    // =========================================================
 
     private void carregarVeiculo(
             Locadora locadora,
@@ -288,13 +249,10 @@ public class PersistenciaService {
                 );
         }
 
-        locadora.cadastrarVeiculo(veiculo);
+        if (locadora.buscarVeiculoPorPlaca(placa) == null) {
+            locadora.cadastrarVeiculo(veiculo);
+        }
     }
-
-
-    // =========================================================
-    // CARREGAR CONTRATOS
-    // =========================================================
 
     private void carregarContratos(
             Locadora locadora,
@@ -311,10 +269,7 @@ public class PersistenciaService {
                 continue;
             }
 
-            if (!lendoContratos
-                    || linha.isEmpty()
-                    || linha.equals("ROTASEGURA_V1")) {
-
+            if (!lendoContratos || linha.isEmpty()) {
                 continue;
             }
 
@@ -336,16 +291,30 @@ public class PersistenciaService {
             boolean finalizado =
                     Boolean.parseBoolean(dados[4]);
 
+            Cliente cliente =
+                    locadora.buscarClientePorCpf(cpf);
+
+            Veiculo veiculo =
+                    locadora.buscarVeiculoPorPlaca(placa);
+
+            if (cliente == null || veiculo == null) {
+                continue;
+            }
+
             Contrato contrato =
-                    locadora.realizarLocacao(
-                            cpf,
-                            placa,
+                    Contrato.recriar(
+                            cliente,
+                            veiculo,
                             dataInicio,
                             dataFim
                     );
 
+            locadora.adicionarContratoRestaurado(
+                    contrato
+            );
+
             if (finalizado) {
-                locadora.devolverVeiculo(placa);
+                contrato.finalizar();
             }
         }
     }

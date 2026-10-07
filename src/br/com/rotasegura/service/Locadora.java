@@ -87,6 +87,18 @@ public class Locadora {
         return contrato;
     }
 
+    public void adicionarContratoRestaurado(
+            Contrato contrato) {
+
+        if (contrato == null) {
+            throw new IllegalArgumentException(
+                    "O contrato não pode ser nulo."
+            );
+        }
+
+        contratos.adicionar(contrato);
+    }
+
     public void devolverVeiculo(String placa) {
 
         Veiculo veiculo = buscarVeiculoPorPlaca(placa);
@@ -106,7 +118,8 @@ public class Locadora {
         for (Contrato contrato : contratos.listar()) {
 
             if (!contrato.isFinalizado()
-                    && contrato.getVeiculo().getPlaca().equalsIgnoreCase(placa)) {
+                    && contrato.getVeiculo().getPlaca()
+                    .equalsIgnoreCase(placa)) {
 
                 contrato.finalizar();
                 return;
@@ -126,7 +139,9 @@ public class Locadora {
 
         for (Cliente cliente : clientes.listar()) {
 
-            if (cliente.getCpf().equals(cpf.replaceAll("\\D", ""))) {
+            if (cliente.getCpf().equals(
+                    cpf.replaceAll("\\D", ""))) {
+
                 return cliente;
             }
         }
@@ -140,9 +155,14 @@ public class Locadora {
             return null;
         }
 
+        String placaLimpa =
+                placa.trim()
+                        .toUpperCase()
+                        .replaceAll("[^A-Z0-9]", "");
+
         for (Veiculo veiculo : veiculos.listar()) {
 
-            if (veiculo.getPlaca().equalsIgnoreCase(placa.trim())) {
+            if (veiculo.getPlaca().equalsIgnoreCase(placaLimpa)) {
                 return veiculo;
             }
         }
@@ -166,9 +186,18 @@ public class Locadora {
 
         System.out.println();
         System.out.println("===== RESUMO DA LOCADORA =====");
-        System.out.println("Clientes cadastrados: " + clientes.tamanho());
-        System.out.println("Veículos cadastrados: " + veiculos.tamanho());
-        System.out.println("Contratos registrados: " + contratos.tamanho());
+        System.out.println(
+                "Clientes cadastrados: "
+                        + clientes.tamanho()
+        );
+        System.out.println(
+                "Veículos cadastrados: "
+                        + veiculos.tamanho()
+        );
+        System.out.println(
+                "Contratos registrados: "
+                        + contratos.tamanho()
+        );
         System.out.println("==============================");
     }
 }

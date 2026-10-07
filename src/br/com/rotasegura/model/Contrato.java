@@ -17,12 +17,23 @@ public class Contrato implements Relatorio {
     public Contrato(Cliente cliente, Veiculo veiculo,
                     LocalDate dataInicio, LocalDate dataFim) {
 
+        this(cliente, veiculo, dataInicio, dataFim, true);
+    }
+
+    private Contrato(Cliente cliente, Veiculo veiculo,
+                     LocalDate dataInicio, LocalDate dataFim,
+                     boolean validarDataAtual) {
+
         if (cliente == null) {
-            throw new IllegalArgumentException("O cliente não pode ser nulo.");
+            throw new IllegalArgumentException(
+                    "O cliente não pode ser nulo."
+            );
         }
 
         if (veiculo == null) {
-            throw new IllegalArgumentException("O veículo não pode ser nulo.");
+            throw new IllegalArgumentException(
+                    "O veículo não pode ser nulo."
+            );
         }
 
         if (dataInicio == null || dataFim == null) {
@@ -31,7 +42,9 @@ public class Contrato implements Relatorio {
             );
         }
 
-        if (dataInicio.isBefore(LocalDate.now())) {
+        if (validarDataAtual
+                && dataInicio.isBefore(LocalDate.now())) {
+
             throw new IllegalArgumentException(
                     "A data de retirada não pode ser anterior à data atual."
             );
@@ -60,11 +73,26 @@ public class Contrato implements Relatorio {
         veiculo.ocupar();
     }
 
+    public static Contrato recriar(
+            Cliente cliente,
+            Veiculo veiculo,
+            LocalDate dataInicio,
+            LocalDate dataFim) {
+
+        return new Contrato(
+                cliente,
+                veiculo,
+                dataInicio,
+                dataFim,
+                false
+        );
+    }
+
     private void calcularValorTotal() {
 
-        long quantidadeDias = ChronoUnit.DAYS.between(dataInicio, dataFim);
+        long quantidadeDias =
+                ChronoUnit.DAYS.between(dataInicio, dataFim);
 
-        // Uma locação de apenas um dia deve cobrar uma diária.
         if (quantidadeDias == 0) {
             quantidadeDias = 1;
         }
@@ -117,7 +145,6 @@ public class Contrato implements Relatorio {
         veiculo.liberar();
         finalizado = true;
     }
-
 
     @Override
     public String gerarRelatorio() {
